@@ -19,6 +19,8 @@ g.data.save <- function(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj,
                 "\"))", sep="")
   if (!length(all.obj)) code <- ""
   cat(code, file=file.path(dir, "R", pkg), sep="\n")
+  cat(paste("Package:",pkg), paste("Date:",date()), "Title: DDP",
+      sep="\n", file=file.path(dir, "DESCRIPTION"))
 }
 
 ## Routine used in data packages:  x <- delay(g.data.load("x", "newdata"))
@@ -33,12 +35,18 @@ g.data.load <- function(i, pkg) {
 ## Attach a delayed-data package:
 ##  kinda like: library(basename(dir), lib.loc=dirname(dir), char=TRUE)
 g.data.attach <- function(dir, pos=2, warn=TRUE, readonly=FALSE) {
-  env <- attach(NULL, pos, paste("package",basename(dir),sep=":"))
+  pkg <- basename(dir)
+  env <- attach(NULL, pos, paste("package",pkg,sep=":"))
   attr(env, "path") <- dir
   if (readonly) attr(env, "readonly") <- TRUE
-  if (file.exists(dir))
-    sys.source(file.path(dir, "R", basename(dir)), env, keep.source=FALSE) else
+  if (file.exists(dir)) {
+    sys.source(file.path(dir, "R", pkg), env, keep.source=FALSE)
+    if (!file.exists(file.path(dir, "DESCRIPTION")))   # Backward compatibility
+      cat(paste("Package:",pkg), paste("Date:",date()), "Title: DDP",
+          sep="\n", file=file.path(dir, "DESCRIPTION"))
+  } else {
     if (warn) warning(paste("'g.data.save' will create:", dir, "\n"))
+  }
 }
 
 ## Get data from an unattached package:
