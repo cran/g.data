@@ -1,6 +1,7 @@
 \name{g.data.save}
 \alias{g.data.attach}
 \alias{g.data.get}
+\alias{g.data.put}
 \alias{g.data.load}
 \alias{g.data.save}
 \title{
@@ -15,26 +16,33 @@ first time the item is requested.
 g.data.attach attaches such a package, in position 2 by default.
 
 g.data.get can be used to get a single piece of data from a package,
-without attaching the package.
+without attaching the package.  g.data.put puts a single item into an
+unattached package.
 
 g.data.load is an internal subroutine used to create the promise objects.
 }
 \usage{
- g.data.attach(dir, pos=2, warn=TRUE)
+ g.data.attach(dir, pos=2, warn=TRUE, readonly=FALSE)
  g.data.get(item, dir)
+ g.data.put(item, value, dir)
  g.data.load(i, pkg)
- g.data.save(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj)
+ g.data.save(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj,
+             compress=FALSE)
 }
 \arguments{
  \item{dir}{Directory (full pathname) of package.  Data is stored in its
    /data subdirectory, as <item>.RData .}
  \item{pos}{Search path position}
  \item{warn}{Logical: warn user if directory being attached doesn't exist}
+ \item{readonly}{Logical: set an attribute on the package that will cause
+                 \code{g.data.save} to abort.}
  \item{item}{Item to retrieve from an unattached package.}
+ \item{value}{Value for the data item being put with \code{g.data.put}.}
  \item{i}{Item to evaluate.}
  \item{pkg}{Package name where item is stored.}
  \item{obj}{Objects to save; defaults to all objects in position "pos".}
  \item{rm.obj}{Objects to remove, both in memory and on disk.}
+ \item{compress}{If TRUE, data is saved in compressed format.}
 }
 \details{
 Data stored in a delayed-data package (DDP) are available on demand, but
@@ -57,7 +65,7 @@ path is stored as an attribute of the environment (see
   g.data.load returns data after loading it.
 }
 \seealso{\code{\link{delay}}, \code{\link{autoload}},
-         \code{\link{searchpaths}}}
+         \code{\link{searchpaths}}, \code{\link{save}}}
 \examples{
 \dontrun{
 ddp <- tempfile("newdir")           # Where to put the files

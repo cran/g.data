@@ -1,6 +1,8 @@
-# Save objects in position "pos" to a delayed-data package:
-g.data.save <- function(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj) {
+## Save objects in position "pos" to a delayed-data package:
+g.data.save <- function(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj,
+                        compress=FALSE) {
   if (is.character(pos)) pos <- match(pos, sub("package:","",search()))
+  if (!is.null(attr(pos.to.env(pos), "readonly"))) stop("Read-Only!")
   pkg <- basename(dir)
   for (i in file.path(dir,c("","data","R"))) if (!file.exists(i)) dir.create(i)
   if (!missing(rm.obj)) {
@@ -11,14 +13,15 @@ g.data.save <- function(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj) {
   for (i in obj) {
     get(i, pos)                              # Put on-shell if a promise object
     fn <- file.path(dir, "data", paste(i,"RData",sep="."))
-    eval(substitute(save(list=i, file=fn)), pos.to.env(pos))
+    save(list=i, file=fn, envir=pos.to.env(pos), compress=compress)
   }
   code <- paste(all.obj, " <- delay(g.data.load(\"", all.obj, "\", \"", pkg,
                 "\"))", sep="")
+  if (!length(all.obj)) code <- ""
   cat(code, file=file.path(dir, "R", pkg), sep="\n")
 }
 
-# Routine used in data packages:  x <- delay(g.data.load("x", "newdata"))
+## Routine used in data packages:  x <- delay(g.data.load("x", "newdata"))
 g.data.load <- function(i, pkg) {
   pos <- match(paste("package",pkg,sep=":"), search())
   if (is.na(pos)) {if (interactive()) stop("pkg not found") else pos <- 2}
@@ -27,19 +30,28 @@ g.data.load <- function(i, pkg) {
   get(i, envir=env)
 }
 
-# Attach a delayed-data package:
-g.data.attach <- function(dir, pos=2, warn=TRUE) {
-  ## like: library(basename(dir), lib.loc=dirname(dir), char=TRUE)
+## Attach a delayed-data package:
+##  kinda like: library(basename(dir), lib.loc=dirname(dir), char=TRUE)
+g.data.attach <- function(dir, pos=2, warn=TRUE, readonly=FALSE) {
   env <- attach(NULL, pos, paste("package",basename(dir),sep=":"))
   attr(env, "path") <- dir
+  if (readonly) attr(env, "readonly") <- TRUE
   if (file.exists(dir))
     sys.source(file.path(dir, "R", basename(dir)), env, keep.source=FALSE) else
     if (warn) warning(paste("'g.data.save' will create:", dir, "\n"))
 }
 
-# Get data from an unattached package:
+## Get data from an unattached package:
 g.data.get <- function(item, dir) {
   env <- new.env()
   load(file.path(dir, "data", paste(item,"RData",sep=".")), env)
   get(item, envir=env)
+}
+
+## Put data into an unattached package:
+g.data.put <- function(item, value, dir) {
+  g.data.attach(dir)
+  assign(item, value, 2)
+  g.data.save(obj=item)
+  detach(2)
 }
