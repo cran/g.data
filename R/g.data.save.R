@@ -19,8 +19,10 @@ g.data.save <- function(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj,
                 "\"))", sep="")
   if (!length(all.obj)) code <- ""
   cat(code, file=file.path(dir, "R", pkg), sep="\n")
-  cat(paste("Package:",pkg), paste("Date:",date()), "Title: DDP",
-      sep="\n", file=file.path(dir, "DESCRIPTION"))
+  fn <- file.path(dir, "DESCRIPTION")
+  cat(paste("Package:",pkg), "Version: 1.0", paste("Date:",date()),
+      "Title: DDP", "Author: You", "Maintainer: You <u@u.com>",
+      "Description: DDP", "License: GPL", sep="\n", file=fn)
 }
 
 ## Routine used in data packages:  x <- delay(g.data.load("x", "newdata"))
@@ -41,9 +43,11 @@ g.data.attach <- function(dir, pos=2, warn=TRUE, readonly=FALSE) {
   if (readonly) attr(env, "readonly") <- TRUE
   if (file.exists(dir)) {
     sys.source(file.path(dir, "R", pkg), env, keep.source=FALSE)
-    if (!file.exists(file.path(dir, "DESCRIPTION")))   # Backward compatibility
-      cat(paste("Package:",pkg), paste("Date:",date()), "Title: DDP",
-          sep="\n", file=file.path(dir, "DESCRIPTION"))
+    if (!file.exists(fn <- file.path(dir, "DESCRIPTION")) ||
+        is.na(read.dcf(fn,"Version")[1,1]))            # Backward compatibility
+      cat(paste("Package:",pkg), "Version: 1.0", paste("Date:",date()),
+          "Title: DDP", "Author: You", "Maintainer: You <u@u.com>",
+          "Description: DDP", "License: GPL", sep="\n", file=fn)
   } else {
     if (warn) warning(paste("'g.data.save' will create:", dir, "\n"))
   }
