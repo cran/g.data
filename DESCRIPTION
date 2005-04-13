@@ -1,6 +1,6 @@
 Package: g.data
-Version: 1.5
-Date: 2004-08-25
+Version: 1.6
+Date: 2005-04-13
 Title: Delayed-Data Packages
 Author: David Brahm <brahm@alum.mit.edu>
 Maintainer: David Brahm <brahm@alum.mit.edu>
@@ -10,4 +10,4 @@ Description: Create and maintain delayed-data packages (DDP's).  Data stored in
   a manner similar to S-Plus, except that you must run g.data.save() to
   actually commit to disk.
 License: GPL
-Packaged: Thu Aug 26 10:58:43 2004; a215020
+Packaged: Wed Apr 13 20:49:47 2005; a215020

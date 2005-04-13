@@ -15,8 +15,10 @@ g.data.save <- function(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj,
     fn <- file.path(dir, "data", paste(i,"RData",sep="."))
     save(list=i, file=fn, envir=pos.to.env(pos), compress=compress)
   }
-  code <- paste(all.obj, " <- delay(g.data.load(\"", all.obj, "\", \"", pkg,
-                "\"))", sep="")
+  code <- paste("delayedAssign(\"", all.obj, "\", g.data.load(\"", all.obj,
+                "\", \"", pkg, "\"))", sep="")
+  if (getRversion() < "2.1.0") code <- paste(all.obj, # Older method w/ 'delay'
+    " <- delay(g.data.load(\"", all.obj, "\", \"", pkg, "\"))", sep="")
   if (!length(all.obj)) code <- ""
   cat(code, file=file.path(dir, "R", pkg), sep="\n")
   fn <- file.path(dir, "DESCRIPTION")
@@ -42,7 +44,10 @@ g.data.attach <- function(dir, pos=2, warn=TRUE, readonly=FALSE) {
   attr(env, "path") <- dir
   if (readonly) attr(env, "readonly") <- TRUE
   if (file.exists(dir)) {
-    sys.source(file.path(dir, "R", pkg), env, keep.source=FALSE)
+    fn <- file.path(dir, "R", pkg)
+    if (getRversion() >= "2.1.0" && regexpr("delay\\(", readLines(fn,1)) > 0)
+      g.data.upgrade(dir)
+    sys.source(fn, env, keep.source=FALSE)
     if (!file.exists(fn <- file.path(dir, "DESCRIPTION")) ||
         is.na(read.dcf(fn,"Version")[1,1]))            # Backward compatibility
       cat(paste("Package:",pkg), "Version: 1.0", paste("Date:",date()),

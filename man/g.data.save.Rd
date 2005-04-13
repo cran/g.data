@@ -64,8 +64,9 @@ path is stored as an attribute of the environment (see
 
   g.data.load returns data after loading it.
 }
-\seealso{\code{\link{delay}}, \code{\link{autoload}},
-         \code{\link{searchpaths}}, \code{\link{save}}}
+\seealso{\code{\link{delay}}, \code{\link{delayedAssign}},
+         \code{\link{searchpaths}}, \code{\link{save}},
+	 \code{\link{g.data.upgrade}}}
 \examples{
 \dontrun{
 ddp <- tempfile("newdir")           # Where to put the files
