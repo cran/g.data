@@ -1,74 +1,36 @@
+## Convert object name <-> filename, e.g. aBcD <-> dir/a@Bc@D.RData ("@" needed for Windows):
+g.data.mash   <- function(dir, obj)
+  file.path(dir, paste(gsub("([[:upper:]])", "@\\1", obj), "RData", sep="."))
+g.data.unmash <- function(fn) gsub("@", "", sub("\\.RData$", "", basename(fn)))
+
+## Attach (or virtually create) a delayed-data package ("DDP"):
+g.data.attach <- function(dir, pos=2, warn=TRUE, readonly=FALSE, backward=FALSE) {
+    env <- attach(NULL, pos, paste("package", basename(dir), sep=":"))   # Need for searchpaths()
+    attr(env, "path")     <- dir
+    attr(env, "readonly") <- readonly
+    if (!file.exists(dir)) {if (warn) warning("New DDP: ", dir); return(invisible())}
+    if (file.exists(file.path(dir, "data"))) g.data.upgrade(dir, backward=backward)
+    for (fn in dir(dir, pattern="\\.RData$", all.files=TRUE, full.names=TRUE))
+      eval(substitute(delayedAssign(OB, get(load(FN))), list(OB=g.data.unmash(fn), FN=fn)), env)
+}
+
 ## Save objects in position "pos" to a delayed-data package:
-g.data.save <- function(dir=searchpaths()[pos], obj=all.obj, pos=2, rm.obj,
-                        compress=FALSE) {
-  if (is.character(pos)) pos <- match(pos, sub("package:","",search()))
-  if (!is.null(attr(pos.to.env(pos), "readonly"))) stop("Read-Only!")
-  pkg <- basename(dir)
-  for (i in file.path(dir,c("","data","R"))) if (!file.exists(i)) dir.create(i)
-  if (!missing(rm.obj)) {
-    rm(list=rm.obj, pos=pos)
-    file.remove(file.path(dir, "data", paste(rm.obj,"RData",sep=".")))
-  }
-  all.obj <- objects(pos, all.names=TRUE)
-  for (i in obj) {
-    get(i, pos)                              # Put on-shell if a promise object
-    fn <- file.path(dir, "data", paste(i,"RData",sep="."))
-    save(list=i, file=fn, envir=pos.to.env(pos), compress=compress)
-  }
-  code <- paste("delayedAssign(\"", all.obj, "\", g.data.load(\"", all.obj,
-                "\", \"", pkg, "\"))", sep="")
-  if (getRversion() < "2.1.0") code <- paste(all.obj, # Older method w/ 'delay'
-    " <- delay(g.data.load(\"", all.obj, "\", \"", pkg, "\"))", sep="")
-  if (!length(all.obj)) code <- ""
-  cat(code, file=file.path(dir, "R", pkg), sep="\n")
-  fn <- file.path(dir, "DESCRIPTION")
-  cat(paste("Package:",pkg), "Version: 1.0", paste("Date:",date()),
-      "Title: DDP", "Author: You", "Maintainer: You <u@u.com>",
-      "Description: DDP", "License: GPL", sep="\n", file=fn)
-}
-
-## Routine used in data packages:  x <- delay(g.data.load("x", "newdata"))
-g.data.load <- function(i, pkg) {
-  pos <- match(paste("package",pkg,sep=":"), search())
-  if (is.na(pos)) {if (interactive()) stop("pkg not found") else pos <- 2}
-  env <- pos.to.env(pos)
-  load(system.file("data", paste(i,"RData",sep="."), package=pkg), env)
-  get(i, envir=env)
-}
-
-## Attach a delayed-data package:
-##  kinda like: library(basename(dir), lib.loc=dirname(dir), char=TRUE)
-g.data.attach <- function(dir, pos=2, warn=TRUE, readonly=FALSE) {
-  pkg <- basename(dir)
-  env <- attach(NULL, pos, paste("package",pkg,sep=":"))
-  attr(env, "path") <- dir
-  if (readonly) attr(env, "readonly") <- TRUE
-  if (file.exists(dir)) {
-    fn <- file.path(dir, "R", pkg)
-    if (getRversion() >= "2.1.0" && regexpr("delay\\(", readLines(fn,1)) > 0)
-      g.data.upgrade(dir)
-    sys.source(fn, env, keep.source=FALSE)
-    if (!file.exists(fn <- file.path(dir, "DESCRIPTION")) ||
-        is.na(read.dcf(fn,"Version")[1,1]))            # Backward compatibility
-      cat(paste("Package:",pkg), "Version: 1.0", paste("Date:",date()),
-          "Title: DDP", "Author: You", "Maintainer: You <u@u.com>",
-          "Description: DDP", "License: GPL", sep="\n", file=fn)
-  } else {
-    if (warn) warning(paste("'g.data.save' will create:", dir, "\n"))
-  }
+g.data.save <- function(dir=attr(env, "path"), obj=ls(env, all.names=TRUE), pos=2, rm.obj=NULL) {
+    if (is.character(pos)) pos <- match(pos, search())
+    if (is.na(pos)) stop("pos not found")
+    env <- pos.to.env(pos)
+    if (isTRUE(attr(env, "readonly"))) stop("Read-Only!")
+    if (!file.exists(dir)) dir.create(dir)
+    if (length(rm.obj)) {rm(list=rm.obj, pos=pos); file.remove(g.data.mash(dir, rm.obj))}
+    is.promise <- function(i) is.call(eval(parse(text=paste("substitute(", i, ", env)"))))
+    for (i in obj) if (!is.promise(i)) save(list=i, file=g.data.mash(dir, i), envir=env)
 }
 
 ## Get data from an unattached package:
-g.data.get <- function(item, dir) {
-  env <- new.env()
-  load(file.path(dir, "data", paste(item,"RData",sep=".")), env)
-  get(item, envir=env)
-}
+g.data.get <- function(item, dir) get(load(g.data.mash(dir, item)))
 
 ## Put data into an unattached package:
 g.data.put <- function(item, value, dir) {
-  g.data.attach(dir)
-  assign(item, value, 2)
-  g.data.save(obj=item)
-  detach(2)
+    assign(item, value)
+    save(list=item, file=g.data.mash(dir, item))
 }

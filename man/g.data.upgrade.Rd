@@ -1,28 +1,32 @@
 \name{g.data.upgrade}
 \alias{g.data.upgrade}
-\title{Upgrade DDP's Created Prior to R-2.1.0}
+\title{Upgrade a version 1 DDP to version 2}
 \description{
-  Earlier DDP's used the \code{delay} function which is deprecated in
-  R-2.1.0.  This function modifies old DDP code to use
-  \code{delayedAssign} (which only exists in R-2.1.0 and higher).
+  Convert an old-style DDP to the current format.
 }
 \usage{
-  g.data.upgrade(dir=searchpaths()[pos], pos=2, warn=TRUE)
+g.data.upgrade(dir, warn=TRUE, backward=FALSE)
 }
 \arguments{
-  \item{dir}{DDP pathname.}
-  \item{pos}{If `dir' is not given, use the DDP in this position of the
-    search path.}
-  \item{warn}{If TRUE, a warning is generated.}
+  \item{dir}{Directory containing the DDP.}
+  \item{warn}{Logical: produce a warning.}
+  \item{backward}{Logical: Make DDP compatible with old g.data, using
+    symbolic links.}
 }
 \details{
-  You can call this function directly to upgrade old DDP's by explicitly
-  passing a pathname.  It is also automatically invoked by
-  \code{g.data.attach} as necessary.  Once all your DDP's are upgraded,
-  this function will no longer be needed.
+  Version 1 DDP's were structured like a package, with a `DESCRIPTION'
+  file, `R' subdirectory, and `data' subdirectory.  In version 2, all
+  data files live at the top level.  Also, data filenames have `@'
+  symbols preceding uppercase letters, see \code{\link{g.data.mash}}.
+
+  With backward=TRUE, we attempt to make a DDP valid under both v1 and
+  v2 g.data.  Symbolic links are used, so this won't work under Windows.
+  If you take one of these backward-compatible DDP's and run
+  \code{g.data.upgrade(backward=FALSE)}, the backward-compatibility is
+  eliminated.
 }
 \value{
-  None, used only for its side effect.
+  None, used for its side effect of reconfiguring `dir'.
 }
-\seealso{\code{\link{g.data.save}}}
+\seealso{\code{\link{g.data.mash}}}
 \keyword{data}

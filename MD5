@@ -1,0 +1,7 @@
+d1c35e5cb49e9d98d7ba2210d037a538 *ChangeLog
+841acaf4264bf87cca0f1da119f5530b *DESCRIPTION
+9fdfeb11f7ddba6f3aab9aaa6b1ac5dd *NAMESPACE
+c28e326af9b03e1e8dcde3b0b35ab516 *R/g.data.save.R
+4e5e664d083451121f5f23b4af482d1b *R/g.data.upgrade.R
+3b4651d3cb33028cc038cbd04bf6369a *man/g.data.save.Rd
+8272fc6356b779358e13262221dd7bcb *man/g.data.upgrade.Rd

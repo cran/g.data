@@ -1,0 +1,5 @@
+New in version 2.0:
+- All data files stored in top-level directory, eliminate the "R" and "data" subdirectories.
+- Filenames include an "@" before uppercase letters, needed for Windows.
+- g.data.save() knows not to re-write promises.
+- Upgrade from v1, with a backwards-compatibility mode
