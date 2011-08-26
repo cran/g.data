@@ -1,0 +1,127 @@
+%\VignetteIndexEntry{g.data Package Documentation}
+%\VignettePackage{g.data}
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+\usepackage{indentfirst}
+\let\code\texttt
+\SweaveOpts{prefix.string=gdata, keep.source=TRUE}
+
+\begin{document}
+\title{g.data Package Documentation} \author{David Brahm} \date{October 31, 2012} \maketitle
+% This is the public version - no local packages needed
+
+<<echo=FALSE>>=
+options(width=80, digits=4, scipen=5)
+if ("package:g.data" %in% search()) detach("package:g.data")             # So it will be in pos=2
+@
+
+\begin{abstract}
+Normally in R, objects live -- and die -- in memory unless you explicitly save them with
+\code{save}, or save the entire image with \code{save.image}.  The \code{g.data} package allows
+you to save a whole group of objects to an associated directory on disk, then access them later.
+The objects then appear to exist in a particular location on the search path (position 2 by
+default), and are readily accessible without extra effort, but R does not actually load them into
+memory until needed.
+\end{abstract}
+
+\section{Introduction}
+In this example, I create two large matrices \code{m1} and \code{m2}, and store them on disk in a
+``delayed data package'' (ddp).  Normally you'd choose the ddp location, but here it's just a
+temporary directory.  The \code{g.data.attach} command attaches an environment associated with
+the ddp directory:
+<<>>=
+require(g.data)
+(ddp <- tempfile("newdir"))                     # Where to put the files
+g.data.attach(ddp)                  # Warns that this is a new directory
+search()[1:3]
+assign("m1", matrix(1, 5000, 1000), 2)
+assign("m2", matrix(2, 5000, 1000), 2)
+ls(2)
+@ 
+The \code{g.data.save} command does the actual storing to disk.  Once I detach the environment
+they lived in, R forgets the objects:
+<<>>=
+g.data.save()                                         # Writes the files
+detach(2)
+@
+In the same or another R session, I then attach the ddp, and the matrices appear to be instantly
+accessible.  In fact they are just promises, so the first time I access \code{m1} (by
+asking its dimensionality) there is a delay as \code{m1} is actually loaded into memory.  Further
+access to \code{m1} is quick, though, because now it's in memory.  Note \code{m2} never needs to
+be loaded into memory, saving time and resources:
+<<>>=
+g.data.attach(ddp)                # No warning, because directory exists
+ls(2)
+system.time(print(dim(m1)))                      # Takes time to load up
+system.time(print(dim(m1)))                     # Second time is faster!
+find("m1")                        # m1 still lives in pos=2, is now real
+@ 
+I can also put a new object \code{m3} into the ddp and re-save it:
+<<>>=
+assign("m3", m1*10, 2)
+g.data.save()                            # Or just g.data.save(obj="m3")
+detach(2)
+@ 
+
+\section{Variations}
+There is a function \code{g.data.get} to access a single object without attaching the ddp:
+<<>>=
+mym2 <- g.data.get("m2", ddp)         # Get one object without attaching
+@ 
+There is also a function \code{g.data.put} to write an object without attaching the ddp:
+<<>>=
+g.data.put("m4", matrix(1:12, 3,4), ddp)
+@ 
+Since we're done with this example, you may want to remove the ddp now:
+<<>>=
+unlink(ddp, recursive=TRUE)                      # Clean up this example
+@ 
+
+Here is a new example with a slightly different approach.  We skip \code{g.data.attach} entirely,
+instead attaching a list \code{y} directly to position 2.  \code{g.data.save} still works, but
+you must now tell it the location of the directory:
+<<>>=
+ddp <- tempfile("newdir")
+y <- list(m1=1:1000, m2=2:1001)
+attach(y)                         # Attach an existing list or dataframe
+search()[1:3]
+ls(2)
+g.data.save(ddp)
+detach(2)
+unlink(ddp, recursive=TRUE)                      # Clean up this example
+@ 
+
+\section{Under the Hood}
+\code{g.data.save} simply stores one object per file in the ddp directory.  An object \code{xyz}
+is stored in file \code{xyz.RData}.  You could access these files with ordinary \code{load}
+commands, and you could write (or overwrite) them with \code{save} commands.
+
+Unfortunately, in Windows the files \code{x.RData} and \code{X.RData} are indistinguishable, so
+we modify the naming convention by preceding uppercase letters with the @ symbol.  An object
+\code{aBcD} is stored in file \code{a@Bc@D.RData}.
+
+\code{g.data.attach} contains the magic.  The environment it attaches contains only promises,
+implemented with \code{delayedAssign}.  When you first access an object, R fulfills
+the promise to 1) load the data file, 2) store the real object in the environment, and 3) return
+its value to you.  Subsequent access just returns the real object which is now stored in the
+environment.  \code{g.data.attach} also gives the environment a ``path'' attribute, so
+\code{g.data.save} will know where to write files.
+
+\code{g.data.save} is smart enough to only write back to disk objects that are not promises.  It
+also has options to allow you to choose the objects written, remove objects, and set the
+directory to write to.
+
+\newpage
+\appendix
+\section{Function Index}
+\begin{itemize}
+
+  \item {\large\bf Create and Maintain Delayed-Data Packages}
+  \begin{description}
+    \item[g.data.attach:] Attach a delayed-data package (DDP)
+    \item[g.data.save:] Write a DDP to disk
+    \item[g.data.get:] Get one object from a DDP on disk
+    \item[g.data.put:] Write one object to a DDP on disk
+  \end{description}
+\end{itemize}
+\end{document}
