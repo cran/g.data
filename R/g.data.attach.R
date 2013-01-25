@@ -1,6 +1,6 @@
 ## Attach (or virtually create) a delayed-data package ("DDP"):
 g.data.attach <- function(dir, pos=2, warn=TRUE, readonly=FALSE) {
-    env <- attach(NULL, pos, paste("package", basename(dir), sep=":"))   # Need for searchpaths()
+    env <- attach(NULL, pos, basename(dir))
     attr(env, "path")     <- dir
     attr(env, "readonly") <- readonly
     if (!file.exists(dir)) {if (warn) warning("New DDP: ", dir); return(invisible())}

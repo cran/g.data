@@ -44,8 +44,7 @@ created with \code{g.data.attach}; e.g. you can attach a list or
 dataframe, and its components will become objects in the DDP.  In this
 case, the call to \code{g.data.save(dir)} must specify the path where
 files will be saved.  If the DDP was created with \code{g.data.attach},
-then its directory is known (see \code{\link{searchpaths}}) and does not
-need to be passed again to \code{g.data.save}.
+then its directory is known and does not need to be passed again to \code{g.data.save}.
 
 The filename associated with an object `obj' is `obj.RData', except that
 uppercase letters are preceded by an `@' symbol.  This is required by
@@ -60,7 +59,7 @@ unattached package.
 \value{
   g.data.get returns the requested data.
 }
-\seealso{\code{\link{delayedAssign}}, \code{\link{searchpaths}}}
+\seealso{\code{\link{delayedAssign}}}
 \examples{
 \dontrun{
 ddp <- tempfile("newdir")           # Where to put the files
