@@ -1,3 +1,6 @@
+New in version 2.4:
+- Vignette source moved to "vignettes" directory
+
 New in version 2.3:
 - Environment now attached as "myddp" instead of "package:myddp", making searchpaths() useless
 
