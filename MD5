@@ -1,5 +1,5 @@
 8185e3643dc9c71adf2f32c139541a26 *ChangeLog
-f66666b8cc7fd9915e389beea6e8c7f4 *DESCRIPTION
+d07753c99aa75c167ccfb0e6ffea52c0 *DESCRIPTION
 0816d48257794f25a67b80e7eb5c17d5 *NAMESPACE
 d1efc0661a32b140b5a7e9fe51385e55 *R/g.data.attach.R
 d5226ab665136647a70d33bfc415c227 *R/g.data.get.R
@@ -7,7 +7,10 @@ d322b4c5ad903d98d3347e7da024a5b4 *R/g.data.mash.R
 d91db07e36234681aace6c413e05811c *R/g.data.put.R
 4941d37edbb786615a5c9d97511736c6 *R/g.data.save.R
 e38c896c3440c8ed15e652781cf6a8d2 *R/g.data.unmash.R
+6a5efc374bad0127bc0f193dafe7d97c *build/vignette.rds
+eb55217e0bdbfad0e15998aed41d470e *inst/doc/g.data.R
 1d31bf6afe14f3e9ce9cf77975cd495b *inst/doc/g.data.Rnw
-6f94c727ac105e862acf32227873dd26 *inst/doc/g.data.pdf
+21a606ba348e88e04b588830a8dcc77b *inst/doc/g.data.pdf
+7bb5f756699a2a2e2df483c63d84734a *inst/doc/index.html
 593ec8da4f7e13fbbb1cbca61c33b967 *man/g.data.save.Rd
 1d31bf6afe14f3e9ce9cf77975cd495b *vignettes/g.data.Rnw
